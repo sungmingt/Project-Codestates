@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Getter@Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,4 +19,6 @@ public class MemberResponseDto {
     private String email;
 
     private String phone;
+
+    private LocalDateTime modifiedAt;
 }

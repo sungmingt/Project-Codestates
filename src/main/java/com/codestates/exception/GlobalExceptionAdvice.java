@@ -35,11 +35,11 @@ public class GlobalExceptionAdvice {
         return response;
     }
 
-    @ExceptionHandler
+    @ExceptionHandler  // exception + ErrorResponse 수정본 정상작동 확인
     public ResponseEntity handleBusinessLogicException(BusinessLogicException e) {
         log.info("message ={}", e.getMessage());
 
-        final ErrorResponse response = ErrorResponse.of(e.getExceptionCode());
+        final ErrorResponse response = ErrorResponse.of(e);
         return new ResponseEntity(response, HttpStatus.valueOf(e.getExceptionCode().getStatus()));
     }
 

@@ -11,23 +11,25 @@ import java.util.stream.Collectors;
 @Getter
 public class ErrorResponse {
 
-    private int status;
-    private String message;
+//    private int status;
+//    private String message;
     private List<FieldError> fieldErrors;
     private List<ConstraintViolationError> violationErrors;
+    private BusinessError businessError;
 
 //======================Constructor======================
 
     private ErrorResponse(final List<FieldError> fieldErrors,
-                          final List<ConstraintViolationError> violationErrors) {
+                          final List<ConstraintViolationError> violationErrors, BusinessError businessError) {
         this.fieldErrors = fieldErrors;
         this.violationErrors = violationErrors;
+        this.businessError = businessError;
     }
 
-    private ErrorResponse(int status, String message) {
-        this.status = status;
-        this.message = message;
-    }
+//    private ErrorResponse(int status, String message) {
+//        this.status = status;
+//        this.message = message;
+//    }
 
 
 //=====================of================================
@@ -35,16 +37,16 @@ public class ErrorResponse {
 
     // (4) BindingResult에 대한 ErrorResponse 객체 생성
     public static ErrorResponse of(BindingResult bindingResult) {
-        return new ErrorResponse(FieldError.of(bindingResult), null);
+        return new ErrorResponse(FieldError.of(bindingResult), null, null);
     }
 
     // (5) Set<ConstraintViolation<?>> 객체에 대한 ErrorResponse 객체 생성
     public static ErrorResponse of(Set<ConstraintViolation<?>> violations) {
-        return new ErrorResponse(null, ConstraintViolationError.of(violations));
+        return new ErrorResponse(null, ConstraintViolationError.of(violations), null);
     }
 
-    public static ErrorResponse of(ExceptionCode e) {
-        return new ErrorResponse(e.getStatus(), e.getMessage());
+    public static ErrorResponse of(BusinessLogicException e) {
+        return new ErrorResponse(null, null, BusinessError.of(e));
     }
 
 
@@ -99,4 +101,19 @@ public class ErrorResponse {
         }
     }
 
+    @Getter
+    public static class BusinessError {
+
+        private final int status;
+        private final String message;
+
+        public BusinessError(ExceptionCode exceptionCode) {
+            this.status = exceptionCode.getStatus();
+            this.message = exceptionCode.getMessage();
+        }
+
+        public static BusinessError of(BusinessLogicException businessLogicException) {
+            return new BusinessError(businessLogicException.getExceptionCode());
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.codestates.member.controller;
 
 import com.codestates.member.Member;
+import com.codestates.member.dto.MemberListDTO;
 import com.codestates.member.service.MemberService;
 import com.codestates.member.dto.MemberPatchDto;
 import com.codestates.member.dto.MemberPostDto;
@@ -17,13 +18,13 @@ import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Controller
+@RestController
 @RequestMapping(value = "/v1/members")
 @Validated
 public class MemberController {
 
-    private MemberService memberService;
-    private MemberMapper mapper;
+    private final MemberService memberService;
+    private final MemberMapper mapper;
 
     public MemberController(MemberService memberService, MemberMapper mapper) {
         this.memberService = memberService;
@@ -37,42 +38,44 @@ public class MemberController {
         Member member = mapper.memberPostDtoToMember(memberPostDto);
         memberService.saveMember(member);
 
-        return new ResponseEntity(mapper.memberToMemberResponseDto(member), HttpStatus.CREATED);
+        MemberResponseDto response = mapper.memberToMemberResponseDto(member);
+        return new ResponseEntity(response, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{memberId}")  //멤버 수정
-    public ResponseEntity patchMember(@PathVariable @Min(1) long memberId,
+    @PatchMapping  //멤버 수정
+    public ResponseEntity patchMember(  //@PathVariable @Positive long memberId,  //id를 pathvariable로 받기 / 객체필드로 받기
                                       @RequestBody MemberPatchDto memberPatchDto) {
 
         Member member = mapper.memberPatchDtoToMember(memberPatchDto);
         memberService.updateMember(member);
 
-        return new ResponseEntity<>(mapper.memberToMemberResponseDto(member), HttpStatus.OK);
+        MemberResponseDto response = mapper.memberToMemberResponseDto(member);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping("/{member-id}") //멤버 검색
     public ResponseEntity getMember(@PathVariable("member-id") long memberId) {
         Member member = memberService.findMember(memberId);
 
-        return new ResponseEntity<>(mapper.memberToMemberResponseDto(member),
-                HttpStatus.OK);
+        MemberResponseDto response = mapper.memberToMemberResponseDto(member);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping  //전체 멤버 검색
     public ResponseEntity getMembers() {
-        List<Member> members = memberService.findMembers();
+        List<Member> findMembers = memberService.findMembers();
 
-        List<MemberResponseDto> response = members.stream()
-                .map(member -> mapper.memberToMemberResponseDto(member))
+        List<MemberResponseDto> members = findMembers.stream()
+                .map(mapper::memberToMemberResponseDto)
                 .collect(Collectors.toList());
 
-        return new ResponseEntity(response, HttpStatus.OK);
+        return new ResponseEntity(new MemberListDTO(members), HttpStatus.OK);
     }
 
     @DeleteMapping("/{memberId}")  //멤버 삭제
     public ResponseEntity deleteMember(@PathVariable @Positive Long memberId) {
-        memberService.deleteMember(memberId);
 
-        return new ResponseEntity(HttpStatus.NO_CONTENT);
+        memberService.deleteMember(memberId);
+        return new ResponseEntity(memberId, HttpStatus.NO_CONTENT);
     }
 }
